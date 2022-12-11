@@ -110,7 +110,7 @@ function main() {
 	
 	let all_new_files = []
 	
-	return load_features(date_str)
+	return load_features(flickr, date_str)
 	.then(function(images_meta) {
 		// randomize order
 		images_meta.shuffle()
@@ -363,7 +363,7 @@ function fetch_flickr_image(image_meta, image_size) {
 	})
 }
 
-function load_features(date_str) {
+function load_features(flickr, date_str) {
 	FS.PATH.FEATURES_RES_DIR = path.join(FS.PATH.DATA, date_str)
 	FS.PATH.FEATURES_RES_RAW = path.join(FS.PATH.FEATURES_RES_DIR, FS.FILE.FEATURES_RES_RAW)
 	
