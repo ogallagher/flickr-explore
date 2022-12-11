@@ -1,6 +1,6 @@
 {
   "name": "flickr-explore",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fetch images from flickr daily /explore (features, interestingness)",
   "main": "flickr_explore.js",
   "scripts": {
