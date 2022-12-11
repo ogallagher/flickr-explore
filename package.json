@@ -1,0 +1,36 @@
+{
+  "name": "flickr-explore",
+  "version": "0.2.0",
+  "description": "Fetch images from flickr daily /explore (features, interestingness)",
+  "main": "flickr_explore.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogallagher/flickr-explore.git"
+  },
+  "keywords": [
+    "flickr",
+    "api-client",
+    "js",
+    "images"
+  ],
+  "author": "Owen Gallagher github.com/ogallagher",
+  "license": "SEE LICENSE IN license.txt",
+  "bugs": {
+    "url": "https://github.com/ogallagher/flickr-explore/issues"
+  },
+  "homepage": "https://github.com/ogallagher/flickr-explore#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "escape-filename": "^1.1.2",
+    "flickr-sdk": "^6.0.0",
+    "pino": "^8.7.0",
+    "superagent": "^8.0.6"
+  },
+  "type": "module",
+  "devDependencies": {
+    "pino-pretty": "^9.1.1"
+  }
+}
