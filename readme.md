@@ -1,18 +1,54 @@
 # flickr explore
 
-[image url docs](https://www.flickr.com/services/api/misc.urls.html)
+[Flickr](https://flickr.com) api client application designed to periodically fetch interesting/featured images from the web API and
+save versions in a local output directory. 
+
+This local directory can be used, for example, as a dynamic images source for rotating desktop backgrounds.
+
+Options control how many images this directory will store at a time, before the oldest are deleted and replaced with new images.
+
+## Install
+
+The script uses the node JS interpreter. Assuming you have node and npm installed, clone or download the project dir, enter it, and install
+the dependencies:
 
 ```
-example preview url		= https://live.staticflickr.com/65535		/52551849781_526ea6e748_c	   .jpg
-						  https://${domain}			   /${server-id}/${image}	_${secret} _${size}.${ext}
-
-example image page url	= https://www.flickr.com/photos/141852728@N05/52551849781
-						  https://${domain}		/photos/${user}		 /${image}
-
-flickr api explore method = flickr.interestingness.getList
+# inside flickr-explore/ project dir
+npm install
 ```
 
-## Size suffixes
+Options are currently all set using a `.env` file in the same directory as the `flickr_explore.js` entrypoint script. Create your own version of this file by copying the contents of `.env_example`. Apart from other options, a value for `FLICKR_API_KEY` is required for the flickr api client to receive successful responses. See [flickr api docs](https://www.flickr.com/services/api/) for how to get a personal API key by filling a short form online.
+
+## Usage
+
+Once the dependencies are installed in `node_modules/` and the `.env` file exists with a valid flickr api key, run the entrypoint script either directly (`node flickr_explore.js`) or via driver that pipes for more legible logging (`./flickr-explore.sh`).
+
+<!--
+    TODO describe how to use out dir as source for rotating background/screensaver on Mac
+    TODO describe how to use out dir as source for rotating background/screensaver on Win
+
+    TODO describe how to schedule regular runs to periodically update the output dir
+-->
+
+## [Flickr image url components](https://www.flickr.com/services/api/misc.urls.html)
+
+flickr api explore method = `flickr.interestingness.getList`
+
+### Static image file url
+
+| protocol | host | server-id | image | secret | size | ext | url |
+| ---------| -----| --------- | ----- | ------ | ---- | --- | --- |
+| https    | live.static.flickr.com | 65535 | 52551849781 | 526ea6e748 | c | jpg | https://live.staticflickr.com/65535/52551849781_526ea6e748_c.jpg |
+
+### Image page url
+
+| protocol | host | "photos" | user | image | url |
+| ---------| -----| -------- | ---- | ----- | --- |
+| https | www.flickr.com | photos | 141852728@N05 | 52551849781 | https://www.flickr.com/photos/141852728@N05/52551849781 |
+
+## [Flickr image size suffixes](https://www.flickr.com/services/api/misc.urls.html)
+
+<!-- TODO use table from english page version -->
 
 | Sufijo | Clase | Borde más grande (en px) | Notas |
 | ------ | ----- | ------------------------ | ----- |
@@ -35,7 +71,7 @@ flickr api explore method = flickr.interestingness.getList
 |6k|extra grande|6144|tiene un secreto único; el propietario de la foto la puede restringir|
 |o|original|arbitrario|tiene un secreto único; el propietario de la foto la puede restringir; los archivos tienes datos EXIF completos; los archivos no se pueden rotar; los archivos pueden utilizar una extensión de archivo arbitraria|
 
-## Photo licenses
+## [Flickr photo licenses](https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html)
 
 ```xml
 <licenses>

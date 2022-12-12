@@ -22,6 +22,7 @@ const DATE_TIME_DELIM = 'T'
 const HTTP_CODE_PASS = 200
 
 const FLICKR_IMAGE_URL_BASE = new URL('https://live.staticflickr.com')
+const FLICKR_WEBSITE_URL_BASE = new URL('https://flickr.com')
 
 const IMAGE_META_ATTR = {
 	DESC: 'description',
@@ -90,8 +91,8 @@ function main() {
 	let month = (now.getMonth() + 1).toString().padStart(2, '0')
 	let day = now.getDate().toString().padStart(2, '0')
 
-	const flickr_explore_page = `https://flickr.com/explore/${year}/${month}/${day}`
-	logger.info(`flickr explore page = ${flickr_explore_page}`)
+	const flickr_explore_page = new URL(`/explore/${year}/${month}/${day}`, FLICKR_WEBSITE_URL_BASE)
+	logger.info(`corresponding flickr explore page = ${flickr_explore_page}`)
 	
 	let date_str = `${year}-${month}-${day}`
 	logger.info(`date str = ${date_str}`)
@@ -108,7 +109,7 @@ function main() {
 	logger.debug(`deleted files: ${JSON.stringify(deleted_files)}`)
 	let delete_file_idx = 0
 
-	let skip_generated_images = env_get_or_default('SKIP_SMALL_IMAGES', SKIP_GENERATED_IMAGES_DEFAULT).toString().toLowerCase() == 'true'
+	let skip_generated_images = env_get_or_default('SKIP_GENERATED_IMAGES', SKIP_GENERATED_IMAGES_DEFAULT).toString().toLowerCase() == 'true'
 	logger.info(`skip generated images = ${skip_generated_images}`)
 	
 	let all_new_files = []
