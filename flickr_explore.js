@@ -67,6 +67,7 @@ const OUT_IMG_DIR_DEFAULT = path.join(FS.PATH.DATA, 'out')
 
 const IMAGE_LIMIT_DEFAULT = 5
 const IMAGE_SIZE_DEFAULT = IMAGE_SIZE.BIGGEST_FREE
+const SKIP_GENERATED_IMAGES_DEFAULT = false
 const FILES_PER_IMAGE = 2
 
 function main() {
@@ -106,10 +107,14 @@ function main() {
 	logger.info(`deleting ${deleted_files.length} files from ${FS.PATH.OUT}`)
 	logger.debug(`deleted files: ${JSON.stringify(deleted_files)}`)
 	let delete_file_idx = 0
+
+	let skip_generated_images = env_get_or_default('SKIP_SMALL_IMAGES', SKIP_GENERATED_IMAGES_DEFAULT).toString().toLowerCase() == 'true'
+	logger.info(`skip generated images = ${skip_generated_images}`)
 	
 	let all_new_files = []
 	
 	return load_features(flickr, date_str)
+	// fetch images and save to storage
 	.then(function(images_meta) {
 		// randomize order
 		images_meta.shuffle()
@@ -124,7 +129,7 @@ function main() {
 			let image_meta = images_meta[i]
 		
 			// fetch data for each new image
-			p[i] = fetch_flickr_image(image_meta, image_size)
+			p[i] = fetch_flickr_image(image_meta, image_size, skip_generated_images)
 			.then(function(image_data) {
 				return {
 					meta: image_meta,
@@ -173,17 +178,15 @@ function main() {
 	.then(function() {
 		if (delete_file_idx < deleted_files.length) {
 			// further deletes needed to not exceed old image limit
-			p.push(
-				new Promise(function(res) {
-					logger.info(`deletes needed beyond ${image_limit} to not exceed ${old_image_limit}`)
-					while (delete_file_idx < deleted_files.length) {
-						apply_deletes(delete_file_idx, deleted_files)
-						delete_file_idx += FILES_PER_IMAGE
-					}
-			
-					res()
-				})
-			)
+			return new Promise(function(res) {
+				logger.info(`deletes needed beyond ${image_limit} to not exceed ${old_image_limit}`)
+				while (delete_file_idx < deleted_files.length) {
+					apply_deletes(delete_file_idx, deleted_files)
+					delete_file_idx += FILES_PER_IMAGE
+				}
+		
+				res()
+			})
 		}
 	})
 	// print results
@@ -312,53 +315,62 @@ function save_image(meta, data, flickr_format) {
 	])
 }
 
-function fetch_flickr_image(image_meta, image_size) {
+function fetch_flickr_image(image_meta, image_size, skip_generated_images) {
 	return new Promise(function(res, rej) {
+		let go = true
 		if (image_size == IMAGE_SIZE.ORIGINAL && image_meta['originalsecret'] === undefined) {
-			logger.warn(`access to original image for ${image_meta['title']} denied; revert to biggest preview`)
-			image_size = IMAGE_SIZE.BIGGEST_FREE
-		}
-		
-		let size = image_size
-		let server = image_meta['server']
-		let image = image_meta['id']
-		let secret = image_size == IMAGE_SIZE.ORIGINAL ? image_meta['originalsecret'] : image_meta['secret']
-		let ext = image_size == IMAGE_SIZE.ORIGINAL ? image_meta['originalformat'] : IMAGE_EXT.FLICKR_GENERATED
-		let url = new URL(`/${server}/${image}_${secret}_${size}.${ext}`, FLICKR_IMAGE_URL_BASE)
-		
-		logger.debug(`send GET to ${url}`)
-		
-		superagent
-		.get(url)
-		.end((err, http_res) => {
-			if (err) {
-				rej(`failed to fetch image from ${url} for image ${JSON.stringify(image_meta)}. ${err}`)
+			if (skip_generated_images) {
+				rej(`access to original image for ${image_meta['title']} denied; skip`)
+				go = false
 			}
 			else {
-				// logger.debug(http_res)
-				
-				if (http_res['statusCode'] == HTTP_CODE_PASS) {
-					let headers = http_res['headers']
-					
-					logger.info(
-						`fetched image size=${headers['imagewidth']}x${headers['imageheight']} ` + 
-						`type=${headers['content-type']} ` +
-						`from ${url}`
-					)
-					
-					res(http_res['body'])
+				logger.warn(`access to original image for ${image_meta['title']} denied; revert to biggest preview`)
+				image_size = IMAGE_SIZE.BIGGEST_FREE
+			}
+		}
+		
+		if (go) {
+			let size = image_size
+			let server = image_meta['server']
+			let image = image_meta['id']
+			let secret = image_size == IMAGE_SIZE.ORIGINAL ? image_meta['originalsecret'] : image_meta['secret']
+			let ext = image_size == IMAGE_SIZE.ORIGINAL ? image_meta['originalformat'] : IMAGE_EXT.FLICKR_GENERATED
+			let url = new URL(`/${server}/${image}_${secret}_${size}.${ext}`, FLICKR_IMAGE_URL_BASE)
+			
+			logger.debug(`send GET to ${url}`)
+			
+			superagent
+			.get(url)
+			.end((err, http_res) => {
+				if (err) {
+					rej(`failed to fetch image from ${url} for image ${JSON.stringify(image_meta)}. ${err}`)
 				}
 				else {
-					rej(
-						`failed to fetch image from ${url} for image ${image_meta['title']}. ` + 
-						`code=${http_res['statusCode']} ` + 
-						`error=${http_res['error']} ` + 
-						`serverError=${http_res['serverError']} ` +
-						`forbidden=${http_res['forbidden']}`
-					)
+					// logger.debug(http_res)
+					
+					if (http_res['statusCode'] == HTTP_CODE_PASS) {
+						let headers = http_res['headers']
+						
+						logger.info(
+							`fetched image size=${headers['imagewidth']}x${headers['imageheight']} ` + 
+							`type=${headers['content-type']} ` +
+							`from ${url}`
+						)
+						
+						res(http_res['body'])
+					}
+					else {
+						rej(
+							`failed to fetch image from ${url} for image ${image_meta['title']}. ` + 
+							`code=${http_res['statusCode']} ` + 
+							`error=${http_res['error']} ` + 
+							`serverError=${http_res['serverError']} ` +
+							`forbidden=${http_res['forbidden']}`
+						)
+					}
 				}
-			}
-		})
+			})
+		}
 	})
 }
 
