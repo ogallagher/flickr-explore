@@ -84,16 +84,15 @@ function main() {
 	
 	let now = get_latest_explore_datetime()
 
-	let year = now.getUTCFullYear()
+	let year = now.getFullYear()
 	// month method returns jan=0 dec=11
-	let month = now.getUTCMonth() + 1
-	let day = now.getUTCDate()
+	let month = (now.getMonth() + 1).toString().padStart(2, '0')
+	let day = now.getDate().toString().padStart(2, '0')
 
 	const flickr_explore_page = `https://flickr.com/explore/${year}/${month}/${day}`
 	logger.info(`flickr explore page = ${flickr_explore_page}`)
 	
-	let date_str = now.toISOString()
-	date_str = date_str.substring(0, date_str.indexOf(DATE_TIME_DELIM))
+	let date_str = `${year}-${month}-${day}`
 	logger.info(`date str = ${date_str}`)
 	
 	let image_size = env_get_or_default('IMAGE_SIZE_CODE', IMAGE_SIZE_DEFAULT)
@@ -475,7 +474,7 @@ function get_latest_explore_datetime() {
 	let dt = new Date()
 
 	// yesterday is latest complete explore page
-	dt.setUTCDate(dt.getUTCDate() - 1)
+	dt.setDate(dt.getDate() - 1)
 	
 	return dt
 }
