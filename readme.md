@@ -50,25 +50,25 @@ flickr api explore method = `flickr.interestingness.getList`
 
 <!-- TODO use table from english page version -->
 
-| Sufijo | Clase | Borde más grande (en px) | Notas |
+| Suffix | Class | Longest edge (en px) | Notes |
 | ------ | ----- | ------------------------ | ----- |
-|s|miniatura|75|cuadrado recortado|
-|q|miniatura|150|cuadrado recortado|
-|t|miniatura|100||
-|m|pequeño|240||
-|n|pequeño|320||
-|w|pequeño|400||
-|(none)|mediano|500||
-|z|mediano|640||
-|c|mediano|800||
-|b|grande|1024||
-|h|grande|1600|tiene un secreto único; el propietario de la foto la puede restringir|
-|k|grande|2048|tiene un secreto único; el propietario de la foto la puede restringir|
-|3k|extra grande|3072|tiene un secreto único; el propietario de la foto la puede restringir|
-|4k|extra grande|4096|tiene un secreto único; el propietario de la foto la puede restringir|
-|f|extra grande|4096|tiene un secreto único; el propietario de la foto la puede restringir; existe únicamente para fotos con relación de aspecto de 2:1|
-|5k|extra grande|5120|tiene un secreto único; el propietario de la foto la puede restringir|
-|6k|extra grande|6144|tiene un secreto único; el propietario de la foto la puede restringir|
+|s|mini|75|square|
+|q|mini|150|square|
+|t|mini|100||
+|m|small|240||
+|n|small|320||
+|w|small|400||
+|(none)|medium|500||
+|z|medium|640||
+|c|medium|800||
+|b|large|1024||
+|h|large|1600|tiene un secreto único; el propietario de la foto la puede restringir|
+|k|large|2048|tiene un secreto único; el propietario de la foto la puede restringir|
+|3k|extra large|3072|tiene un secreto único; el propietario de la foto la puede restringir|
+|4k|extra large|4096|tiene un secreto único; el propietario de la foto la puede restringir|
+|f|extra large|4096|tiene un secreto único; el propietario de la foto la puede restringir; existe únicamente para fotos con relación de aspecto de 2:1|
+|5k|extra large|5120|tiene un secreto único; el propietario de la foto la puede restringir|
+|6k|extra large|6144|tiene un secreto único; el propietario de la foto la puede restringir|
 |o|original|arbitrario|tiene un secreto único; el propietario de la foto la puede restringir; los archivos tienes datos EXIF completos; los archivos no se pueden rotar; los archivos pueden utilizar una extensión de archivo arbitraria|
 
 ## [Flickr photo licenses](https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html)

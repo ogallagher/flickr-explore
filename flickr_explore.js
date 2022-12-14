@@ -30,9 +30,13 @@ const IMAGE_META_ATTR = {
 	DATE_TAKEN: 'date_taken',
 	OWNER_NAME: 'owner_name',
 	FORMAT_ORIG: 'original_format',
-	URL_ORIG: 'url_o'
+	URL_ORIG: 'url_o',
+	WIDTH_ORIG: 'width_o',
+	HEIGHT_ORIG: 'height_o',
+	TITLE: 'title',
+	ID: 'id'
 }
-const IMAGE_META_ATTRS = [
+const IMAGE_META_ATTRS_REQUESTED = [
 	IMAGE_META_ATTR.DESC,
 	IMAGE_META_ATTR.LICENSE,
 	IMAGE_META_ATTR.DATE_TAKEN,
@@ -100,6 +104,16 @@ function main() {
 	let image_size = env_get_or_default('IMAGE_SIZE_CODE', IMAGE_SIZE_DEFAULT)
 	let image_limit = parseInt(env_get_or_default('NEW_IMAGE_COUNT', IMAGE_LIMIT_DEFAULT))
 	let old_image_limit = parseInt(env_get_or_default('OLD_IMAGE_COUNT', IMAGE_LIMIT_DEFAULT))
+	let skip_generated_images = env_get_or_default('SKIP_GENERATED_IMAGES', SKIP_GENERATED_IMAGES_DEFAULT).toString().toLowerCase() == 'true'
+	logger.info(`skip generated images = ${skip_generated_images}`)
+	let image_width_min = env_get_or_default('IMAGE_MIN_WIDTH')
+	if (image_width_min !== undefined) {
+		logger.info(`image min width = ${image_width_min}`)
+	}
+	let image_height_min = env_get_or_default('IMAGE_MIN_HEIGHT')
+	if (image_height_min !== undefined) {
+		logger.info(`image min height = ${image_height_min}`)
+	}
 	
 	let old_files = list_files_by_date_modified(FS.PATH.OUT)
 	logger.debug(`old files: ${JSON.stringify(old_files, undefined, '\t')}`)
@@ -108,13 +122,10 @@ function main() {
 	logger.info(`deleting ${deleted_files.length} files from ${FS.PATH.OUT}`)
 	logger.debug(`deleted files: ${JSON.stringify(deleted_files)}`)
 	let delete_file_idx = 0
-
-	let skip_generated_images = env_get_or_default('SKIP_GENERATED_IMAGES', SKIP_GENERATED_IMAGES_DEFAULT).toString().toLowerCase() == 'true'
-	logger.info(`skip generated images = ${skip_generated_images}`)
 	
 	let all_new_files = []
 	
-	return load_features(flickr, date_str)
+	return load_features(flickr, date_str, image_width_min, image_height_min)
 	// fetch images and save to storage
 	.then(function(images_meta) {
 		// randomize order
@@ -375,7 +386,7 @@ function fetch_flickr_image(image_meta, image_size, skip_generated_images) {
 	})
 }
 
-function load_features(flickr, date_str) {
+function load_features(flickr, date_str, width_min, height_min) {
 	FS.PATH.FEATURES_RES_DIR = path.join(FS.PATH.DATA, date_str)
 	FS.PATH.FEATURES_RES_RAW = path.join(FS.PATH.FEATURES_RES_DIR, FS.FILE.FEATURES_RES_RAW)
 	
@@ -413,6 +424,40 @@ function load_features(flickr, date_str) {
 				})
 			}
 		})
+	}).then(function(featured_images) {
+		let width_limited = width_min !== undefined
+		let height_limited = height_min !== undefined
+
+		// filter out images where original size is too small
+		if (width_limited || height_limited) {
+			logger.debug('removing features where original size is too small')
+			
+			let all_images = featured_images
+			featured_images = []
+
+			let removed = 0, w, h
+			for (let image_meta of all_images) {
+				w = image_meta[IMAGE_META_ATTR.WIDTH_ORIG]
+				h = image_meta[IMAGE_META_ATTR.HEIGHT_ORIG]
+
+				if (
+					(width_limited && w !== undefined && w < width_min) ||
+					(height_limited && h !== undefined && h < height_min)
+				) {
+					logger.debug(`remove ${image_meta[IMAGE_META_ATTR.ID]} size ${w}x${h}`)
+					removed++
+				}
+				else {
+					featured_images.push(image_meta)
+				}
+			}
+
+			logger.info(`removed ${removed} images where original size is too small`)
+			return featured_images
+		}
+		else {
+			return featured_images
+		}
 	})
 }
 
@@ -421,7 +466,7 @@ function fetch_flickr_features(flickr, date_str, items_per_page) {
 		return new Promise(function(res, rej) {
 			const features_req = flickr.interestingness.getList({
 				date: date_str,
-				extras: IMAGE_META_ATTRS,
+				extras: IMAGE_META_ATTRS_REQUESTED,
 				per_page: items_per_page,
 				page: page+1
 			}).then(function(flickr_res) {
