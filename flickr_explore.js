@@ -88,12 +88,31 @@ function main() {
 	
 	const flickr = new Flickr(process.env.FLICKR_API_KEY)
 	
-	let now = get_latest_explore_datetime()
+	/**
+	 * @type {Date}
+	 */
+	let latest_date = env_get_or_default('FEATURE_DATE', get_latest_explore_datetime())
+	// if from env var, convert string to date
+	if (!(latest_date instanceof Date)) {
+		latest_date = new Date(latest_date)
+	}
+	// ensure latest date not too new
+	const today = new Date()
+	today.setHours(0)
+	today.setMinutes(0)
+	today.setSeconds(0)
+	today.setMilliseconds(0)
+	if (latest_date > today) {
+		throw new Error(
+			`requested date ${latest_date.toISOString().substring(0, 10)} is too recent; should be <= ${today.toISOString().substring(0, 10)}`, 
+			{ cause: latest_date }
+		)
+	}
 
-	let year = now.getFullYear()
+	let year = latest_date.getFullYear()
 	// month method returns jan=0 dec=11
-	let month = (now.getMonth() + 1).toString().padStart(2, '0')
-	let day = now.getDate().toString().padStart(2, '0')
+	let month = (latest_date.getMonth() + 1).toString().padStart(2, '0')
+	let day = latest_date.getDate().toString().padStart(2, '0')
 
 	const flickr_explore_page = new URL(`/explore/${year}/${month}/${day}`, FLICKR_WEBSITE_URL_BASE)
 	logger.info(`corresponding flickr explore page = ${flickr_explore_page}`)
